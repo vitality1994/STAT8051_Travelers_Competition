@@ -1,0 +1,127 @@
+---
+title: "results"
+output: pdf_document
+date: "2022-12-12"
+---
+
+```{r}
+#dat1 is the best predicted rows selected
+dat1=read.csv("best_rows.csv")
+#dat3 is the full training set
+#ignore dat2, it's just here to provide extra information
+dat2=read.csv("driver_policy.csv")
+dat3=read.csv("full_data_to_contrast.csv")
+drivers=read.csv("drivers.csv")
+vehicles=read.csv("vehicles.csv")
+dat_best=dat2[dat2$split=="Train",][dat1$index+1,]
+plc_ids=dat2[dat2$split=="Train",][dat1$index+1,]$policy_id
+j=17
+#print(drivers[drivers$policy_id==plc_ids[j],])
+table(dat1$m_living_status)/sum(table(dat1$m_living_status))
+table(dat3$m_living_status)/sum(table(dat3$m_living_status))
+print(dat1$m_living_status[1:20])
+```  
+  
+## reg
+```{r}
+#train is the input of training data
+train=read.csv("train_data.csv")
+#pred is the prediction of training set
+pred=read.csv("train_pred_data.csv")
+train$discount=as.factor(train$discount)
+train$Home_policy_ind=as.factor(train$Home_policy_ind)
+train$m_living_status=as.factor(train$m_living_status)
+train$m_ownership=as.factor(train$m_ownership)
+train$df_prior_carrier=as.factor(train$df_prior_carrier)
+#train$df_cat_zone=as.factor(train$df_cat_zone)
+#train$number_drivers=as.factor(train$number_drivers)
+train$n_car=as.factor(train$n_car)
+train$state_id=as.factor(train$state_id)
+train$max_high_edu=as.factor(train$max_high_edu)
+mod=glm(pred[,2]~train$driver_age+train$m_living_status+train$df_cat_zone+train$df_cov_package+train$number_drivers+train$discount+train$lon+train$quoted_amt+train$max_high_edu+train$state_id+train$num_date+train$n_car+train$credit_score+train$df_prior_carrier+train$Home_policy_ind+train$lat)
+summary(mod)
+```
+```{r}
+library(ggplot2)
+```
+
+## driver_age
+```{r}
+boxplot(dat1$driver_age,dat3$driver_age)
+dage=as.data.frame(c(dat1$driver_age,dat3$driver_age))
+names(dage)="age"
+dage$label=as.factor(c(rep("best",length(dat1$driver_age)),rep("overall",length(dat3$driver_age))))
+ggplot(dage, aes(x=label, y=age)) + 
+  geom_boxplot()
+mean(dat1$driver_age)
+mean(dat3$driver_age)
+t.test(dat1$driver_age,dat3$driver_age)
+mean(dat1$driver_age)
+```
+  
+## cat_zone
+```{r}
+dcat=as.data.frame(c(as.numeric(table(dat1$df_cat_zone)/sum(table(dat1$df_cat_zone))),as.numeric(table(dat3$df_cat_zone)/sum(table(dat3$df_cat_zone)))))
+names(dcat)="Freq"
+dcat$cat_zone=rep(seq(0,4,1),2)
+dcat$label=c(rep("best",5),rep("overall",5))
+
+#ggplot(data = dcat) + geom_bar(mapping = aes(x=cat_zone,y=best),stat = "identity")+geom_bar(mapping = aes(x=cat_zone,y=-overall.Freq),stat = "identity")
+ggplot(data = dcat, mapping = aes(x = cat_zone, y = Freq, fill = label)) + geom_bar(stat = 'identity', position = 'dodge')
+```
+  
+## num_driver
+```{r}
+drnum=as.data.frame(c(as.numeric(table(dat1$number_drivers)/sum(table(dat1$number_drivers))),as.numeric(table(dat3$number_drivers)/sum(table(dat3$number_drivers)))))
+names(drnum)="Freq"
+drnum$num_driver=rep(seq(1,6,1),2)
+drnum$label=c(rep("best",6),rep("overall",6))
+
+#ggplot(data = dcat) + geom_bar(mapping = aes(x=cat_zone,y=best),stat = "identity")+geom_bar(mapping = aes(x=cat_zone,y=-overall.Freq),stat = "identity")
+ggplot(data = drnum, mapping = aes(x = num_driver, y = Freq, fill = label)) + geom_bar(stat = 'identity', position = 'dodge')
+```
+## living status
+```{r}
+dlive=as.data.frame(c(as.numeric(table(dat1$m_living_status)/sum(table(dat1$m_living_status))),as.numeric(table(dat3$m_living_status)/sum(table(dat3$m_living_status)))[1:3]))
+names(dlive)="Freq"
+dlive$live_type=rep(c("dependent","owned","rent"),2)
+dlive$label=c(rep("best",3),rep("overall",3))
+
+#ggplot(data = dcat) + geom_bar(mapping = aes(x=cat_zone,y=best),stat = "identity")+geom_bar(mapping = aes(x=cat_zone,y=-overall.Freq),stat = "identity")
+ggplot(data = dlive, mapping = aes(x = live_type, y = Freq, fill = label)) + geom_bar(stat = 'identity', position = 'dodge')
+
+```
+  
+## cov_package
+```{r}
+dcov=as.data.frame(c(as.numeric(table(dat1$df_cov_package)/sum(table(dat1$df_cov_package)))[1:3],as.numeric(table(dat3$df_cov_package)/sum(table(dat3$df_cov_package)))[1:3]))
+names(dcov)="Freq"
+dcov$cov_type=factor(rep(c("low","medium","high"),2),levels=c("low","medium","high"))
+dcov$label=c(rep("best",3),rep("overall",3))
+
+#ggplot(data = dcat) + geom_bar(mapping = aes(x=cat_zone,y=best),stat = "identity")+geom_bar(mapping = aes(x=cat_zone,y=-overall.Freq),stat = "identity")
+ggplot(data = dcov, mapping = aes(x = cov_type, y = Freq, fill = label)) + geom_bar(stat = 'identity', position = 'dodge')
+
+```
+  
+## discount
+```{r}
+ddis=as.data.frame(c(as.numeric(table(dat1$discount)/sum(table(dat1$discount))),as.numeric(table(dat3$discount)/sum(table(dat3$discount)))))
+names(ddis)="Freq"
+ddis$discount=(rep(c("no","yes"),2))
+ddis$label=c(rep("best",2),rep("overall",2))
+par(mfrow=c(1,2))
+ggplot(data = ddis, mapping = aes(x = discount, y = Freq, fill = label)) + geom_bar(stat = 'identity', position = 'dodge')
+
+```
+  
+## quoted_amount
+```{r}
+damt=as.data.frame(c(dat1$quoted_amt,dat3$quoted_amt))
+names(damt)="quoted_amount"
+damt$label=as.factor(c(rep("best",length(dat1$driver_age)),rep("overall",length(dat3$driver_age))))
+ggplot(damt, aes(x=label, y=quoted_amount)) + 
+  geom_boxplot()+scale_y_continuous(limits = c(0, 10000))
+
+mean(dat1$quoted_amt)
+```
