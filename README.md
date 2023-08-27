@@ -20,7 +20,7 @@ project will suggest will predict those.
 ## Feature Engineering
 **Data imputation method**: Multiple Imputations with Multivariate Imputation by Chained Equations (MICE) algorithm.
 
-**Converting Zip code**: Due to large number of classes for feature Zip, it is converted to longitude and lattitude.
+**Converting Zip code**: Due to large number of classes for feature Zip, they were converted to longitude and lattitude.
 
 <br/>
 
